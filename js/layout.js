@@ -28,7 +28,9 @@ export function computeLayout(width, height, { leftHanded = false } = {}) {
     strings, // logical order: index 0 is the lowest string
     tooNarrow: spacing < MIN_SPACING,
     // Touch parameters in px (to be tuned on devices, 14).
-    band: Math.max(5, spacing * 0.1),
+    // Half-width of the zone around a string where a touch plays it; the rest
+    // between strings is silent, so strums can start there.
+    tapHalf: spacing * 0.3,
     hysteresis: Math.min(6, Math.max(3, spacing * 0.08)),
   };
 }

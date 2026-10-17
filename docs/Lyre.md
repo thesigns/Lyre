@@ -2,7 +2,7 @@
 
 ## 1. Koncepcja
 
-Lyre to minimalistyczna aplikacja PWA, wirtualny instrument wzorowany na antycznej greckiej lirze (*chelys*, z pudłem ze skorupy żółwia). Użytkownik szarpie struny ruchem palca, a aplikacja generuje dźwięk szarpanej struny w czasie rzeczywistym, syntetyzowany fizycznie (bez sampli).
+Lyre to minimalistyczna aplikacja PWA, wirtualny instrument wzorowany na antycznej greckiej lirze (*chelys*, z pudłem ze skorupy żółwia). Użytkownik gra, dotykając strun palcem albo przeciągając po nich, a aplikacja generuje dźwięk szarpanej struny w czasie rzeczywistym, syntetyzowany fizycznie (bez sampli).
 
 Najważniejsze cechy:
 - realistyczny dźwięk szarpanej struny z syntezy fizycznej,
@@ -16,7 +16,7 @@ Najważniejsze cechy:
 
 - **Minimalizm.** Ekran główny to sam instrument. Aplikacja startuje od prostego menu (patrz 11.1); z instrumentu wraca się do niego jednym dyskretnym przyciskiem.
 - **Instrument, nie gra.** Brak punktów, brak kar za błędy. Każde szarpnięcie struny zawsze gra dźwięk.
-- **Dźwięk powstaje wyłącznie z ruchu.** Struna gra, gdy palec ją przetnie albo z niej zejdzie, jak przy prawdziwym szarpnięciu. Samo dotknięcie ekranu nigdy nie gra i nie wycisza strun.
+- **Stuknięcie i brzdąknięcie.** Dotknięcie struny gra ją od razu (stuknięcie); przeciągnięcie palcem gra każdą przeciętą strunę (brzdąknięcie). Dotknięcie między strunami nic nie gra. Dotyk nigdy nie wycisza strun.
 - **Język: angielski.** Cały interfejs (menu, ustawienia, podpowiedzi, komunikaty), tytuły i opisy melodii oraz manifest PWA są po angielsku. Bez wielojęzyczności w MVP, ale teksty trzymane w jednym miejscu, żeby dało się je później przetłumaczyć. Wyjątek: ten dokument designowy jest po polsku.
 - **Offline first.** Brak plików dźwiękowych, wszystko generowane w locie. Aplikacja działa w pełni bez sieci po pierwszym uruchomieniu.
 - **Stack:** vanilla JavaScript, HTML, CSS, Web Audio API (AudioWorklet), Canvas 2D. Bez frameworków i bez zależności zewnętrznych, chyba że okażą się konieczne.
@@ -40,7 +40,7 @@ Najważniejsze cechy:
 
 ### 4.2. Ekspresja
 - **Miejsce szarpnięcia:** pozycja palca wzdłuż struny w momencie szarpnięcia steruje barwą (filtr grzebieniowy na pobudzeniu). Blisko dolnego mostka dźwięk jasny i ostry, bliżej środka miękki i okrągły. Zmiana płynna, nie skokowa.
-- **Siła:** szybkość gestu w momencie przecięcia struny steruje amplitudą tej struny. Głośność ma dolny próg, żeby nawet wolne, delikatne pociągnięcie było wyraźnie słyszalne, i górny limit.
+- **Siła:** szybkość gestu w momencie przecięcia struny steruje amplitudą tej struny. Głośność ma dolny próg, żeby nawet wolne, delikatne pociągnięcie było wyraźnie słyszalne, i górny limit. Stuknięcie (7.3) ma stałą, średnią głośność.
 ### 4.3. Pudło rezonansowe
 - Sygnał wszystkich strun przechodzi przez rezonans pudła: ConvolverNode z krótką odpowiedzią impulsową albo zestaw kilku filtrów rezonansowych.
 - Odpowiedź impulsowa (jeśli używana) generowana proceduralnie lub dołączona jako mały plik.
@@ -76,7 +76,7 @@ Najważniejsze cechy:
 - **Struny wypełniają dostępny obszar:** długość strun wynika z wysokości obszaru (minus marginesy na mostek i jarzmo), odstęp z szerokości. Brak ramy o stałych proporcjach, więc nic nie jest skalowane jak obrazek.
 - **Odstęp między strunami:** minimum ok. 44–48 px (rozmiar palca), maksimum do ustalenia (rzędu 90–120 px), żeby na szerokim ekranie (tablet w landscape, komputer) brzdąknięcie przez wszystkie struny nie wymagało zbyt długiego ruchu. Gdy szerokość pozwala na więcej, grupa strun jest wyśrodkowana. Test na telefonie potwierdził, że w portrecie odstęp wystarcza do wygodnej gry.
 - Dla bardzo wąskich okien (np. podzielony ekran), gdy minimum się nie mieści, pokazać dyskretną podpowiedź o poszerzeniu okna lub obróceniu urządzenia. Nie obracać strun do poziomu.
-- Wokół każdej struny wąskie **pasmo „na strunie”** (7.2) jako pionowy pas.
+- Wokół każdej struny **pasmo stuknięcia** (ok. ±30% odstępu, 7.3) jako pionowy pas. Środek między strunami i marginesy to **strefa ciszy**.
 - Między skrajnymi strunami a bokami obszaru zostaje margines (co najmniej pół odstępu), z którego można zacząć gest brzdąknięcia (patrz 7.2). Struny trzymać z dala od krawędzi ekranu, gdzie system przechwytuje gesty (cofanie na iOS, nawigacja gestami na Androidzie).
 - Obrót urządzenia w trakcie grania nie przerywa dźwięku i nie resetuje stanu (np. postępu melodii).
 
@@ -92,8 +92,9 @@ Najważniejsze cechy:
 - Przeciągnięcie palcem w poprzek strun gra **każdą strunę, którą palec przetnie** — dowolną liczbę sąsiednich strun, od dwóch do wszystkich siedmiu, w obu kierunkach. Nie ma osobnej logiki dla „pełnego” brzdąknięcia; brzdąknięcie przez 2, 3, 4 czy 7 strun to ten sam mechanizm.
 - **Musi być możliwe przejechanie palcem po wszystkich siedmiu strunach jednym gestem**, a także po dowolnym fragmencie (np. tylko struny 3–5). Każda przecięta struna gra dokładnie raz przy każdym przejściu.
 - Gest może zacząć się i skończyć w dowolnym miejscu: na strunie, między strunami albo na marginesie poza skrajną struną. Zatrzymanie palca między strunami nie wyzwala żadnego dodatkowego dźwięku.
-- Struna gra w momencie, gdy palec **przetnie linię struny** (nie granicę pasma), albo gdy zejdzie z jej pasma (patrz niżej).
-- **Gest zaczęty na strunie:** każda struna ma wąskie pasmo wokół swojej linii (rzędu kilku pikseli, do strojenia). Palec położony w tym paśmie jest traktowany jako położony „na strunie”; zejście z pasma w dowolną stronę szarpie tę strunę. Dzięki temu gest od struny 2 do struny 4 gra struny 2, 3 i 4.
+- Struna gra w momencie, gdy palec **przetnie linię struny** (nie granicę pasma stuknięcia).
+- **Gest zaczęty na strunie:** dotknięcie w paśmie stuknięcia gra strunę od razu (7.3). Ta struna nie gra ponownie, dopóki palec nie opuści jej pasma; dopiero potem kolejne przecięcie jej linii (np. przy powrocie) gra ją znowu. Dzięki temu gest od struny 2 do struny 4 gra struny 2, 3 i 4, każdą raz.
+- **Gest zaczęty w strefie ciszy** (między strunami, na marginesie) gra tylko przecięte struny.
 - **Detekcja przecięć na odcinkach, nie na pozycjach:** przy szybkim ruchu kolejne zdarzenia ruchu dzielą duże odległości i palec może przeskoczyć kilka strun między zdarzeniami. Dla każdej pary kolejnych pozycji palca sprawdzać, które struny przecina odcinek między nimi, i zagrać wszystkie.
 - Używać `getCoalescedEvents()` (tam, gdzie dostępne), żeby uzyskać pełną rozdzielczość ruchu palca.
 - Struny przecięte w jednym odcinku grają **w kolejności przecięcia**, z drobnymi przesunięciami w czasie proporcjonalnymi do miejsca przecięcia na odcinku. Moment przecięcia interpolowany ze znaczników czasu zdarzeń. W każdej porcji zdarzeń pierwsza struna gra natychmiast, kolejne z zachowaniem odstępów względem niej; czas AudioContext wysyłany do workletu przez `port`, worklet startuje pobudzenie z dokładnością do próbki w `process()`. Brzdąknięcie ma brzmieć jak przeciągnięcie, nie jak jednoczesny akord — także przy krótkim, bardzo szybkim ruchu przez dwie struny.
@@ -104,13 +105,12 @@ Najważniejsze cechy:
 - Ruch palca wzdłuż struny (bez jej przecinania) nie wyzwala dźwięku.
 - Działa także dla ukośnych gestów.
 
-### 7.3. Pojedyncze szarpnięcie
-- **Dotknięcie ekranu nie gra nic** — ani na strunie, ani między strunami. Nie ma stuknięcia jako osobnego gestu.
-- Pojedynczą strunę gra się małym ruchem, tym samym mechanizmem co brzdąknięcie (7.2):
-  - **odciągnięcie:** palec położony na strunie (w jej paśmie) i przesunięty w bok — struna gra przy zejściu z pasma,
-  - **przeciągnięcie przez strunę:** palec położony obok struny i przesunięty przez jej linię.
-- Wystarczy ruch rzędu kilku pikseli, więc opóźnienie względem dotknięcia jest pomijalne.
-- **Podpowiedź dla nowych użytkowników:** przy pierwszym uruchomieniu krótka, dyskretna animacja pokazująca szarpnięcie ruchem palca. Jeśli użytkownik kilka razy pod rząd stuknie w strunę bez ruchu, podpowiedź pojawia się ponownie (najwyżej kilka razy, potem już nie).
+### 7.3. Stuknięcie
+- Wokół każdej struny jest **pasmo stuknięcia** (ok. ±30% odstępu, do strojenia). **Dotknięcie w nim gra strunę natychmiast** (w `pointerdown`), w miejscu dotyku — bez czekania, czy to stuknięcie, czy początek brzdąknięcia. Wprowadzone po testach na telefonie: gra pojedynczymi dźwiękami jest szybsza i bardziej naturalna niż szarpanie ruchem.
+- Stuknięcie ma stałą, średnią głośność (przy dotknięciu nie ma prędkości ruchu do zmierzenia).
+- **Strefa ciszy:** środek między strunami (ok. 40% odstępu) i marginesy. Dotknięcie tam nic nie gra; stąd zaczyna się brzdąknięcie bez przypadkowego dźwięku.
+- Ponowne dotknięcie tej samej struny gra ją ponownie.
+- Drobny ruch palca po stuknięciu (w obrębie pasma) nie gra struny drugi raz.
 
 ### 7.4. Brak tłumienia palcem
 - **Dotyk nie wycisza strun.** Struna zawsze wybrzmiewa naturalnie, niezależnie od tego, czy palec na niej leży. Tłumienie przytrzymaniem palca zostało usunięte po testach na telefonie, bo utrudniało granie: palec odruchowo zatrzymywany na strunie przed kolejnym ruchem gasił dźwięk.
@@ -153,7 +153,7 @@ Najważniejsze cechy:
 - Kółko ma cienką **ciemną obwódkę** (kolor tekstu), żeby zachować kontrast na beżowym tle, także dla osób z daltonizmem.
 - Średnica kółka co najmniej rozmiaru opuszka palca (ok. 40–48 px).
 - Następna nuta pokazana z wyprzedzeniem jako samo czerwone obramowanie (pusty okrąg), żeby ręka mogła się przygotować.
-- **Trafienie gdziekolwiek we wskazaną strunę się liczy**, zarówno pojedynczym szarpnięciem, jak i przecięciem w trakcie brzdąknięcia. Samo dotknięcie bez ruchu nie gra, więc się nie liczy. Kółko jest wskazówką miejsca, nie celem do trafienia. Szarpnięcie w miejscu kółka daje po prostu zamierzoną barwę.
+- **Trafienie gdziekolwiek we wskazaną strunę się liczy**, zarówno stuknięciem, jak i przecięciem w trakcie brzdąknięcia. Kółko jest wskazówką miejsca, nie celem do trafienia. Szarpnięcie w miejscu kółka daje po prostu zamierzoną barwę.
 - Szarpnięcie złej struny po prostu gra jej dźwięk. Bez dźwięku błędu, bez punktów. W trybie nauki kółko czeka dalej.
 - Koniec melodii: subtelne potwierdzenie, możliwość powtórzenia.
 
@@ -236,7 +236,7 @@ Rodzaj tetrachordu, skala i wysokość najniższej struny są nieaktywne w trakc
 - **Szybkie przeciągnięcie przez 2, 3 lub 4 sąsiednie struny gra dokładnie te struny**, każdą raz, w kolejności, w obu kierunkach i w dowolnym miejscu instrumentu (np. struny 1–2, 3–5, 4–7) — bez dodatkowych dźwięków z sąsiednich strun.
 - Gest zaczęty na strunie (np. od struny 2 do 4) gra także strunę, od której się zaczął.
 - Szybkie przeciągnięcia tam i z powrotem między dwiema strunami grają każde przejście; zmiana kierunku w trakcie gestu działa.
-- Samo dotknięcie ekranu nie gra żadnej struny. Pojedyncze szarpnięcie (odciągnięcie ze struny lub przeciągnięcie przez nią) gra dokładnie tę strunę, raz.
+- Stuknięcie w strunę gra ją od razu, raz. Dotknięcie między strunami nie gra nic. Brzdąknięcie zaczęte na strunie nie gra jej podwójnie.
 - Palec leżący na strunie jej nie wycisza; brzdąknięcie nie gra strun podwójnie.
 - Po kliknięciu przycisku w menu startowym pierwsze szarpnięcie struny gra od razu.
 - Opóźnienie od szarpnięcia do dźwięku nie przekracza wartości docelowej (do ustalenia po pomiarach na urządzeniach).
@@ -256,9 +256,8 @@ Rodzaj tetrachordu, skala i wysokość najniższej struny są nieaktywne w trakc
 - Pudło rezonansowe: splot z odpowiedzią impulsową czy filtry rezonansowe — decyzja po odsłuchu.
 - Konstrukcja heptachordu i harmonii (5.2) — weryfikacja ze źródłami muzykologicznymi.
 - Transkrypcja Pieśni Seikilosa i liczba jej różnych dźwięków (9.5).
-- Szerokość pasma „na strunie” i próg histerezy przy brzdąknięciu — strojenie na prawdziwych urządzeniach.
+- Szerokość pasma stuknięcia, głośność stuknięcia i próg histerezy przy brzdąknięciu — strojenie na prawdziwych urządzeniach.
 - Dolny próg głośności dla wolnego pociągnięcia (4.2).
-- Forma podpowiedzi „pluck by moving your finger” (7.3).
 - Opóźnienie dźwięku na Androidzie i iOS — pomiar (`baseLatency`, `outputLatency`) w pierwszym prototypie, potem wartość docelowa do kryteriów akceptacji.
 - Maksymalny odstęp między strunami na szerokich ekranach.
 - Styl graficzny mostka i jarzma oraz dopracowanie palety.

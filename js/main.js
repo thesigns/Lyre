@@ -27,6 +27,9 @@ function speedToAmp(speed) {
   return 0.35 + 0.65 * Math.min(1, Math.pow(speed / 2.5, 0.8));
 }
 
+// A tap has no movement to measure, so it plays at a medium volume.
+const TAP_AMP = 0.6;
+
 function applyTuning() {
   const freqs = frequencies(E3, scaleRatios('diatonic-pythagorean', 'heptachord'));
   engine.setTuning(freqs);
@@ -49,7 +52,7 @@ function play(plucks) {
   const now = engine.currentTime;
   lastInputLag = performance.now() - base;
   for (const p of plucks) {
-    const amp = speedToAmp(p.speed);
+    const amp = p.tap ? TAP_AMP : speedToAmp(p.speed);
     engine.pluck(p.string, now + (p.t - base) / 1000, amp, p.position);
     renderer.pluck(p.string, amp, p.position);
   }
@@ -63,7 +66,7 @@ function local(e) {
 stage.addEventListener('pointerdown', (e) => {
   stage.setPointerCapture(e.pointerId);
   const p = local(e);
-  tracker.down(e.pointerId, p.x, p.y, p.t);
+  play(tracker.down(e.pointerId, p.x, p.y, p.t));
 });
 
 stage.addEventListener('pointermove', (e) => {

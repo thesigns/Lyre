@@ -1,7 +1,8 @@
-// Turns pointer movement into plucks, see docs/Lyre.md 7.
-// Pure logic without DOM: positions in px, times in ms. move() returns the
-// resulting plucks in time order:
-//   { string, t, position, speed }   position: 0 at the bridge, 1 at the yoke
+// Turns touches and pointer movement into plucks, see docs/Lyre.md 7.
+// Pure logic without DOM: positions in px, times in ms. down() and move()
+// return the resulting plucks in time order:
+//   { string, t, position, speed, tap }   position: 0 at the bridge, 1 at the yoke
+// A tap has no speed (null); a crossing has the finger speed in px/ms.
 
 const MIN_SEGMENT_MS = 2;
 
@@ -14,15 +15,28 @@ export class GestureTracker {
   setLayout(layout) {
     this.layout = layout;
     // Geometry changed under active fingers: re-read where they are, without plucking.
-    for (const p of this.pointers.values()) p.strings = this.initialStates(p.x, p.y);
+    for (const p of this.pointers.values()) {
+      p.strings = this.layout.strings.map((s) => this.freeState(p.x - s.x));
+    }
   }
 
   has(id) {
     return this.pointers.has(id);
   }
 
+  // A touch inside a string's tap zone plays that string right away (7.3).
   down(id, x, y, t) {
-    this.pointers.set(id, { x, y, t, strings: this.initialStates(x, y) });
+    const { strings, tapHalf, top, bottom } = this.layout;
+    const inside = y >= top && y <= bottom;
+    const plucks = [];
+    const states = strings.map((s, i) => {
+      const d = x - s.x;
+      if (!inside || Math.abs(d) > tapHalf) return this.freeState(d);
+      plucks.push({ string: i, t, position: (bottom - y) / (bottom - top), speed: null, tap: true });
+      return { tapped: true, side: 0, armed: false };
+    });
+    this.pointers.set(id, { x, y, t, strings: states });
+    return plucks;
   }
 
   move(id, points) {
@@ -42,19 +56,13 @@ export class GestureTracker {
     this.pointers.delete(id);
   }
 
-  initialStates(x, y) {
-    const { strings, band, top, bottom } = this.layout;
-    const inside = y >= top && y <= bottom;
-    return strings.map((s) => {
-      const d = x - s.x;
-      if (inside && Math.abs(d) <= band) return { on: true, side: 0, armed: false };
-      return { on: false, side: d < 0 ? -1 : 1, armed: true };
-    });
+  freeState(d) {
+    return { tapped: false, side: d < 0 ? -1 : 1, armed: true };
   }
 
   // Finds every string the segment from the previous position to pt plucks (7.2).
   segment(p, pt, plucks) {
-    const { strings, band, hysteresis, top, bottom } = this.layout;
+    const { strings, tapHalf, hysteresis, top, bottom } = this.layout;
     const dx = pt.x - p.x;
     const dy = pt.y - p.y;
     const dt = Math.max(pt.t - p.t, MIN_SEGMENT_MS);
@@ -65,14 +73,10 @@ export class GestureTracker {
       const st = p.strings[i];
       const d0 = p.x - s.x;
       const d1 = pt.x - s.x;
-      if (st.on) {
-        // Started on the string: leaving its band in either direction plucks it.
-        if (Math.abs(d1) <= band) return;
-        const edge = d1 < 0 ? -band : band;
-        found.push({ i, f: clamp01((edge - d0) / (d1 - d0)) });
-        st.on = false;
-        st.side = d1 < 0 ? -1 : 1;
-        st.armed = Math.abs(d1) >= hysteresis;
+      if (st.tapped) {
+        // Already played by the tap: silent until the finger leaves the tap zone,
+        // so a strum that starts on a string does not play it twice.
+        if (Math.abs(d1) > tapHalf) p.strings[i] = this.freeState(d1);
         return;
       }
       if (d1 * st.side < 0) {
@@ -95,6 +99,7 @@ export class GestureTracker {
         t: p.t + f * (pt.t - p.t),
         position: (bottom - y) / (bottom - top),
         speed,
+        tap: false,
       });
     }
   }

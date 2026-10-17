@@ -23,10 +23,8 @@ A minimalist virtual instrument inspired by the ancient Greek lyre. Pluck and st
 ## How to play
 
 1. Open the app and press **Play**.
-2. **Pluck** a string by dragging your finger across it, or by placing your finger on it and pulling away.
-3. **Strum** by sweeping across several strings in one motion.
-
-Just tapping a string does nothing. Like on a real instrument, the sound comes from the movement.
+2. **Tap** a string to pluck it.
+3. **Strum** by sweeping across several strings in one motion. Start between the strings to play only the strings you cross.
 
 ## Running locally
 
