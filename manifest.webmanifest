@@ -3,6 +3,7 @@
   "short_name": "Lyre",
   "description": "A virtual ancient Greek lyre with seven synthesized strings.",
   "lang": "en",
+  "id": "/Lyre/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

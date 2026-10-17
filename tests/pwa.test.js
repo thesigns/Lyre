@@ -31,6 +31,8 @@ test('manifest allows rotation and points to existing icons', () => {
   const manifest = JSON.parse(read('manifest.webmanifest'));
   assert.equal(manifest.orientation, 'any');
   assert.equal(manifest.start_url, './');
+  // id resolves against the origin, not the folder: "./" would clash with other apps on thesigns.github.io.
+  assert.equal(manifest.id, '/Lyre/');
   assert.equal(manifest.scope, './');
   assert.equal(manifest.lang, 'en');
   for (const icon of manifest.icons) assert.ok(existsSync(new URL(icon.src, root)), icon.src);

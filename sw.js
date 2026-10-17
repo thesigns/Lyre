@@ -2,7 +2,7 @@
 // Bump VERSION with every release; the new version downloads in the background
 // and takes over the next time the app starts (js/pwa.js), never while playing.
 
-const VERSION = 'lyre-2026-10-17-1';
+const VERSION = 'lyre-2026-10-17-2';
 
 const ASSETS = [
   './',
