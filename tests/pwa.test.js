@@ -27,6 +27,12 @@ test('the service worker caches every app file, and only existing ones', () => {
   for (const f of assets) if (f !== './') assert.ok(existsSync(new URL(f, root)), `not found: ${f}`);
 });
 
+test('the service worker deletes only its own caches on the shared origin', () => {
+  const sw = read('sw.js');
+  assert.match(sw, /const VERSION = 'lyre-/);
+  assert.match(sw, /startsWith\('lyre-'\)/);
+});
+
 test('manifest allows rotation and points to existing icons', () => {
   const manifest = JSON.parse(read('manifest.webmanifest'));
   assert.equal(manifest.orientation, 'any');

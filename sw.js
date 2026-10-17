@@ -2,7 +2,7 @@
 // Bump VERSION with every release; the new version downloads in the background
 // and takes over the next time the app starts (js/pwa.js), never while playing.
 
-const VERSION = 'lyre-2026-10-17-2';
+const VERSION = 'lyre-2026-10-17-3';
 
 const ASSETS = [
   './',
@@ -37,9 +37,12 @@ self.addEventListener('message', (event) => {
   if (event.data === 'activate') self.skipWaiting();
 });
 
+// Cache Storage is shared by every app on thesigns.github.io: delete only old Lyre caches.
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k)))),
+    caches
+      .keys()
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('lyre-') && k !== VERSION).map((k) => caches.delete(k)))),
   );
 });
 
