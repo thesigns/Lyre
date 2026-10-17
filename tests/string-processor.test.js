@@ -73,7 +73,6 @@ for (const rate of [44100, 48000]) {
       send(proc, {
         type: 'tune',
         strings: freqs.map((freq) => ({ freq, t60: 3 })),
-        dampT60: 0.1,
         fadeT60: 0.08,
       });
       send(proc, { type: 'pluck', string: s, when: 0, amp: 0.8, position: 0.2 });
@@ -83,18 +82,18 @@ for (const rate of [44100, 48000]) {
   });
 }
 
-test('damping silences a ringing string quickly', async () => {
+test('retuning applies from the next pluck of a ringing string', async () => {
   const rate = 48000;
   const Cls = await load(rate);
   const proc = new Cls();
-  send(proc, { type: 'tune', strings: Array(7).fill({ freq: 220, t60: 3 }), dampT60: 0.1, fadeT60: 0.08 });
+  const tune = (freq) => send(proc, { type: 'tune', strings: Array(7).fill({ freq, t60: 3 }), fadeT60: 0.08 });
+  tune(220);
   send(proc, { type: 'pluck', string: 0, when: 0, amp: 1, position: 0.2 });
-  const level = (buf) => Math.sqrt(buf.reduce((s, v) => s + v * v, 0) / buf.length);
-  const before = level(render(proc, rate, 0.1));
-  send(proc, { type: 'damp', string: 0, on: true });
   render(proc, rate, 0.2);
-  const after = level(render(proc, rate, 0.05));
-  assert.ok(after < before * 0.01, `level ${after} vs ${before}`);
+  tune(330);
+  assert.ok(Math.abs(cents(pitch(render(proc, rate, 0.5), rate, 220), 220)) < 3, 'still the old pitch');
+  send(proc, { type: 'pluck', string: 0, when: 0, amp: 1, position: 0.2 });
+  assert.ok(Math.abs(cents(pitch(render(proc, rate, 0.5), rate, 330), 330)) < 3, 'new pitch after pluck');
 });
 
 test('scales have seven notes and the expected spans', () => {

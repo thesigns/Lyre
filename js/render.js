@@ -1,7 +1,5 @@
 // Canvas drawing of the strings, bridge and yoke, see docs/Lyre.md 8.
 
-import { DAMP_T60 } from './audio/engine.js';
-
 const T60_TO_TAU = 1 / Math.log(1000); // amplitude falls 60 dB after t60
 const REST_AMPLITUDE = 0.3; // px; below this a string is drawn straight
 
@@ -27,12 +25,7 @@ export class Renderer {
 
   // t60 per string, matching the audio decay.
   setDecays(t60s) {
-    this.strings = t60s.map((t60, i) => ({
-      t60,
-      amplitude: 0,
-      position: 0.5,
-      damped: this.strings[i] ? this.strings[i].damped : false,
-    }));
+    this.strings = t60s.map((t60) => ({ t60, amplitude: 0, position: 0.5 }));
   }
 
   pluck(i, amp, position) {
@@ -44,11 +37,6 @@ export class Renderer {
     this.animate();
   }
 
-  damp(i, on) {
-    const s = this.strings[i];
-    if (s) s.damped = on;
-  }
-
   animate() {
     if (this.frame) return;
     this.lastTime = performance.now();
@@ -57,8 +45,7 @@ export class Renderer {
       this.lastTime = now;
       let moving = false;
       for (const s of this.strings) {
-        const t60 = s.damped ? DAMP_T60 : s.t60;
-        s.amplitude *= Math.exp(-dt / (t60 * T60_TO_TAU));
+        s.amplitude *= Math.exp(-dt / (s.t60 * T60_TO_TAU));
         if (s.amplitude < REST_AMPLITUDE) s.amplitude = 0;
         else moving = true;
       }

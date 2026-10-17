@@ -8,25 +8,26 @@ const layout = computeLayout(400, 800);
 const X = layout.strings.map((s) => s.x);
 const MID_Y = 400;
 
-function tracker(opts) {
-  const t = new GestureTracker(opts);
+function tracker() {
+  const t = new GestureTracker();
   t.setLayout(layout);
   return t;
 }
 
 // Moves a finger through xs (one segment per entry), 8 ms per segment.
 function drag(t, xs, { id = 1, y = MID_Y, t0 = 0, dt = 8 } = {}) {
-  const events = t.down(id, xs[0], y, t0);
+  t.down(id, xs[0], y, t0);
+  const plucks = [];
   let time = t0;
   for (const x of xs.slice(1)) {
     time += dt;
-    events.push(...t.move(id, [{ x, y, t: time }]));
+    plucks.push(...t.move(id, [{ x, y, t: time }]));
   }
-  events.push(...t.up(id, time));
-  return events;
+  t.up(id);
+  return plucks;
 }
 
-const plucked = (events) => events.filter((e) => e.type === 'pluck').map((e) => e.string);
+const plucked = (plucks) => plucks.map((p) => p.string);
 
 // Points every `step` px from a to b.
 function path(a, b, step = 4) {
@@ -39,7 +40,7 @@ function path(a, b, step = 4) {
 test('one huge segment across all strings plays all seven in order', () => {
   const ev = drag(tracker(), [10, 390]);
   assert.deepEqual(plucked(ev), [0, 1, 2, 3, 4, 5, 6]);
-  const times = ev.filter((e) => e.type === 'pluck').map((e) => e.t);
+  const times = ev.map((e) => e.t);
   assert.deepEqual(times, [...times].sort((a, b) => a - b));
   assert.ok(times[6] > times[0], 'plucks are spread in time, not a chord');
 });
@@ -69,9 +70,7 @@ test('pulling off a string plays it once, in either direction', () => {
 });
 
 test('touch without movement plays nothing', () => {
-  const t = tracker();
-  const ev = [...t.down(1, X[2], MID_Y, 0), ...t.up(1, 100)];
-  assert.deepEqual(plucked(ev), []);
+  assert.deepEqual(plucked(drag(tracker(), [X[2]])), []);
 });
 
 test('jitter on a string line plays at most once', () => {
@@ -94,7 +93,8 @@ test('direction change replays strings in the new order', () => {
 
 test('moving along a string plays nothing', () => {
   const t = tracker();
-  const ev = t.down(1, X[4] + 15, 200, 0);
+  t.down(1, X[4] + 15, 200, 0);
+  const ev = [];
   for (let i = 1; i <= 40; i++) ev.push(...t.move(1, [{ x: X[4] + 15, y: 200 + i * 10, t: i * 8 }]));
   assert.deepEqual(plucked(ev), []);
 });
@@ -119,46 +119,4 @@ test('two fingers are tracked independently', () => {
   const b = t.move(2, [{ x: X[5] - 20, y: MID_Y, t: 8 }]);
   assert.deepEqual(plucked(a), [0, 1]);
   assert.deepEqual(plucked(b), [6, 5]);
-});
-
-test('holding still near a string damps it until the finger moves', () => {
-  const t = tracker({ holdMs: 500 });
-  t.down(1, X[2] + 8, MID_Y, 0);
-  assert.deepEqual(t.tick(400), []);
-  assert.equal(t.nextDeadline(), 500);
-  assert.deepEqual(t.tick(510), [{ type: 'damp', string: 2, on: true, t: 510 }]);
-  assert.equal(t.nextDeadline(), Infinity);
-  const ev = t.move(1, [{ x: X[2] + 30, y: MID_Y, t: 600 }]);
-  assert.deepEqual(ev, [{ type: 'damp', string: 2, on: false, t: 600 }]);
-});
-
-test('pulling off a damped string releases the damping before the pluck', () => {
-  const t = tracker({ holdMs: 500 });
-  t.down(1, X[2], MID_Y, 0);
-  t.tick(510);
-  const ev = t.move(1, [{ x: X[2] + 15, y: MID_Y, t: 600 }]);
-  assert.deepEqual(ev.map((e) => e.type), ['damp', 'pluck']);
-  assert.equal(ev[0].on, false);
-});
-
-test('holding still between strings damps nothing', () => {
-  const t = tracker({ holdMs: 500 });
-  t.down(1, (X[2] + X[3]) / 2, MID_Y, 0);
-  assert.deepEqual(t.tick(600), []);
-});
-
-test('small tremor during a hold does not cancel it', () => {
-  const t = tracker({ holdMs: 500 });
-  t.down(1, X[2] + 8, MID_Y, 0);
-  t.move(1, [{ x: X[2] + 10, y: MID_Y + 2, t: 200 }]);
-  assert.equal(t.tick(510).length, 1);
-});
-
-test('two fingers damping one string release it only when both leave', () => {
-  const t = tracker({ holdMs: 500 });
-  t.down(1, X[2] + 5, 300, 0);
-  t.down(2, X[2] - 5, 500, 0);
-  assert.equal(t.tick(510).length, 1);
-  assert.deepEqual(t.up(1, 600), []);
-  assert.deepEqual(t.up(2, 700), [{ type: 'damp', string: 2, on: false, t: 700 }]);
 });

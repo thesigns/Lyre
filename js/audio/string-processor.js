@@ -1,9 +1,8 @@
 // AudioWorklet with seven plucked strings (Karplus-Strong), see docs/Lyre.md 4.1.
 //
 // Messages from the main thread:
-//   { type: 'tune', strings: [{ freq, t60 }], dampT60, fadeT60 }
+//   { type: 'tune', strings: [{ freq, t60 }], fadeT60 }
 //   { type: 'pluck', string, when, amp, position }   when: AudioContext time in seconds
-//   { type: 'damp', string, on }
 
 const MIN_FREQ = 40;
 const GAIN_SMOOTHING = 0.002; // per-sample approach to the target loop gain (~10 ms)
@@ -135,11 +134,6 @@ class LyreString {
     this.current = 0;
     this.freq = 0;
     this.t60 = 3;
-    this.damped = false;
-  }
-
-  ringGain(voice, params) {
-    return voice.loopGain(this.damped ? params.dampT60 : this.t60);
   }
 
   retune(freq, t60) {
@@ -160,15 +154,9 @@ class LyreString {
       }
       voice.setFrequency(this.freq);
     }
-    voice.targetGain = this.ringGain(voice, params);
+    voice.targetGain = voice.loopGain(this.t60);
     if (!voice.active) voice.gain = voice.targetGain;
     voice.excite(amp, position);
-  }
-
-  damp(on, params) {
-    this.damped = on;
-    const voice = this.voices[this.current];
-    if (voice.freq) voice.targetGain = this.ringGain(voice, params);
   }
 }
 
@@ -176,7 +164,7 @@ class LyreStringsProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
     this.strings = Array.from({ length: 7 }, () => new LyreString(sampleRate));
-    this.params = { dampT60: 0.1, fadeT60: 0.08 };
+    this.params = { fadeT60: 0.08 };
     this.queue = [];
     this.port.onmessage = (e) => this.onMessage(e.data);
   }
@@ -184,7 +172,6 @@ class LyreStringsProcessor extends AudioWorkletProcessor {
   onMessage(msg) {
     switch (msg.type) {
       case 'tune':
-        this.params.dampT60 = msg.dampT60;
         this.params.fadeT60 = msg.fadeT60;
         msg.strings.forEach((s, i) => this.strings[i].retune(s.freq, s.t60));
         break;
@@ -195,9 +182,6 @@ class LyreStringsProcessor extends AudioWorkletProcessor {
         this.queue.splice(i, 0, msg);
         break;
       }
-      case 'damp':
-        this.strings[msg.string].damp(msg.on, this.params);
-        break;
     }
   }
 

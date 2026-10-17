@@ -1,10 +1,10 @@
 // Audio graph: strings worklet -> body resonances -> limiter -> master volume.
 
-// Decay times (60 dB) in seconds; the renderer uses the same values for the visual decay.
-export const DAMP_T60 = 0.1;
+// Fade-out (60 dB, seconds) of the old pitch when a string is plucked after retuning.
 const FADE_T60 = 0.08;
 
-// Decay time of an undamped string: lower strings ring longer.
+// Decay time of a string; the renderer uses the same value for the visual decay.
+// Lower strings ring longer.
 export function stringT60(freq) {
   return Math.min(6, Math.max(1.2, 5 * Math.pow(110 / freq, 0.6)));
 }
@@ -100,7 +100,6 @@ export class AudioEngine {
     this.node.port.postMessage({
       type: 'tune',
       strings: freqs.map((freq) => ({ freq, t60: stringT60(freq) })),
-      dampT60: DAMP_T60,
       fadeT60: FADE_T60,
     });
   }
@@ -108,11 +107,6 @@ export class AudioEngine {
   pluck(string, when, amp, position) {
     if (!this.node) return;
     this.node.port.postMessage({ type: 'pluck', string, when, amp, position });
-  }
-
-  damp(string, on) {
-    if (!this.node) return;
-    this.node.port.postMessage({ type: 'damp', string, on });
   }
 
   latencyInfo() {

@@ -30,6 +30,5 @@ export function computeLayout(width, height, { leftHanded = false } = {}) {
     // Touch parameters in px (to be tuned on devices, 14).
     band: Math.max(5, spacing * 0.1),
     hysteresis: Math.min(6, Math.max(3, spacing * 0.08)),
-    dampHalf: spacing * 0.3,
   };
 }

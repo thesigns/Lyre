@@ -19,7 +19,6 @@ const tracker = new GestureTracker();
 const renderer = new Renderer(canvas);
 
 let canvasRect = canvas.getBoundingClientRect();
-let holdTimer = 0;
 let lastInputLag = null;
 
 // Volume from the finger speed at the crossing (px/ms), with a floor so that
@@ -44,34 +43,17 @@ function relayout() {
 
 // Plucks that arrive together keep their spacing in time, relative to the first
 // one, which plays right away (7.2).
-function handle(events) {
-  let base = null;
+function play(plucks) {
+  if (!plucks.length) return;
+  const base = plucks[0].t;
   const now = engine.currentTime;
-  for (const ev of events) {
-    if (ev.type === 'pluck') {
-      if (base === null) {
-        base = ev.t;
-        lastInputLag = performance.now() - ev.t;
-      }
-      const amp = speedToAmp(ev.speed);
-      engine.pluck(ev.string, now + (ev.t - base) / 1000, amp, ev.position);
-      renderer.pluck(ev.string, amp, ev.position);
-    } else if (ev.type === 'damp') {
-      engine.damp(ev.string, ev.on);
-      renderer.damp(ev.string, ev.on);
-    }
+  lastInputLag = performance.now() - base;
+  for (const p of plucks) {
+    const amp = speedToAmp(p.speed);
+    engine.pluck(p.string, now + (p.t - base) / 1000, amp, p.position);
+    renderer.pluck(p.string, amp, p.position);
   }
-  if (base !== null) showDebug();
-}
-
-function scheduleHoldCheck() {
-  clearTimeout(holdTimer);
-  const deadline = tracker.nextDeadline();
-  if (deadline === Infinity) return;
-  holdTimer = setTimeout(() => {
-    handle(tracker.tick(performance.now()));
-    scheduleHoldCheck();
-  }, Math.max(0, deadline - performance.now()) + 5);
+  showDebug();
 }
 
 function local(e) {
@@ -81,23 +63,18 @@ function local(e) {
 stage.addEventListener('pointerdown', (e) => {
   stage.setPointerCapture(e.pointerId);
   const p = local(e);
-  handle(tracker.down(e.pointerId, p.x, p.y, p.t));
-  scheduleHoldCheck();
+  tracker.down(e.pointerId, p.x, p.y, p.t);
 });
 
 stage.addEventListener('pointermove', (e) => {
   if (!tracker.has(e.pointerId)) return;
   const coalesced = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
   const points = (coalesced.length ? coalesced : [e]).map(local);
-  handle(tracker.move(e.pointerId, points));
-  scheduleHoldCheck();
+  play(tracker.move(e.pointerId, points));
 });
 
 for (const type of ['pointerup', 'pointercancel']) {
-  stage.addEventListener(type, (e) => {
-    handle(tracker.up(e.pointerId, e.timeStamp));
-    scheduleHoldCheck();
-  });
+  stage.addEventListener(type, (e) => tracker.up(e.pointerId));
 }
 
 playButton.addEventListener('click', () => {
