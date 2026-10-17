@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { GestureTracker } from '../js/gesture.js';
 import { computeLayout } from '../js/layout.js';
 
-// 400 px wide: spacing ~50 px, strings at x ~ 50, 100, ... 350, tap zones ±19 px.
+// 400 px wide: spacing ~50 px, strings at x ~ 50, 100, ... 350, tap zones ±20 px.
 const layout = computeLayout(400, 800);
 const X = layout.strings.map((s) => s.x);
 const GAP = (i) => (X[i] + X[i + 1]) / 2; // silent point between strings i and i+1

@@ -76,7 +76,7 @@ Najważniejsze cechy:
 - **Struny wypełniają dostępny obszar:** długość strun wynika z wysokości obszaru (minus marginesy na mostek i jarzmo), odstęp z szerokości. Brak ramy o stałych proporcjach, więc nic nie jest skalowane jak obrazek.
 - **Odstęp między strunami:** minimum ok. 44–48 px (rozmiar palca), maksimum do ustalenia (rzędu 90–120 px), żeby na szerokim ekranie (tablet w landscape, komputer) brzdąknięcie przez wszystkie struny nie wymagało zbyt długiego ruchu. Gdy szerokość pozwala na więcej, grupa strun jest wyśrodkowana. Test na telefonie potwierdził, że w portrecie odstęp wystarcza do wygodnej gry.
 - Dla bardzo wąskich okien (np. podzielony ekran), gdy minimum się nie mieści, pokazać dyskretną podpowiedź o poszerzeniu okna lub obróceniu urządzenia. Nie obracać strun do poziomu.
-- Wokół każdej struny **pasmo stuknięcia** (ok. ±38% odstępu, 7.3) jako pionowy pas. Środek między strunami i marginesy to **strefa ciszy**.
+- Wokół każdej struny **pasmo stuknięcia** (ok. ±40% odstępu, 7.3) jako pionowy pas. Środek między strunami i marginesy to **strefa ciszy**.
 - Między skrajnymi strunami a bokami obszaru zostaje margines (co najmniej pół odstępu), z którego można zacząć gest brzdąknięcia (patrz 7.2). Struny trzymać z dala od krawędzi ekranu, gdzie system przechwytuje gesty (cofanie na iOS, nawigacja gestami na Androidzie).
 - Obrót urządzenia w trakcie grania nie przerywa dźwięku i nie resetuje stanu (np. postępu melodii).
 
@@ -106,9 +106,9 @@ Najważniejsze cechy:
 - Działa także dla ukośnych gestów.
 
 ### 7.3. Stuknięcie
-- Wokół każdej struny jest **pasmo stuknięcia** (ok. ±38% odstępu, poszerzone z ±30% po testach na telefonie; do dalszego strojenia). **Dotknięcie w nim gra strunę natychmiast** (w `pointerdown`), w miejscu dotyku — bez czekania, czy to stuknięcie, czy początek brzdąknięcia. Wprowadzone po testach na telefonie: gra pojedynczymi dźwiękami jest szybsza i bardziej naturalna niż szarpanie ruchem.
+- Wokół każdej struny jest **pasmo stuknięcia** (ok. ±40% odstępu, poszerzone z ±30% przez ±38% po testach na telefonie; do dalszego strojenia). **Dotknięcie w nim gra strunę natychmiast** (w `pointerdown`), w miejscu dotyku — bez czekania, czy to stuknięcie, czy początek brzdąknięcia. Wprowadzone po testach na telefonie: gra pojedynczymi dźwiękami jest szybsza i bardziej naturalna niż szarpanie ruchem.
 - Stuknięcie ma stałą, średnią głośność (przy dotknięciu nie ma prędkości ruchu do zmierzenia).
-- **Strefa ciszy:** środek między strunami (ok. 24% odstępu) i marginesy. Dotknięcie tam nic nie gra; stąd zaczyna się brzdąknięcie bez przypadkowego dźwięku.
+- **Strefa ciszy:** środek między strunami (ok. 20% odstępu) i marginesy. Dotknięcie tam nic nie gra; stąd zaczyna się brzdąknięcie bez przypadkowego dźwięku.
 - Ponowne dotknięcie tej samej struny gra ją ponownie.
 - Drobny ruch palca po stuknięciu (w obrębie pasma) nie gra struny drugi raz.
 
