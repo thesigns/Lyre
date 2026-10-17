@@ -30,7 +30,7 @@ export function computeLayout(width, height, { leftHanded = false } = {}) {
     // Touch parameters in px (to be tuned on devices, 14).
     // Half-width of the zone around a string where a touch plays it; the rest
     // between strings is silent, so strums can start there.
-    tapHalf: spacing * 0.3,
+    tapHalf: spacing * 0.38,
     hysteresis: Math.min(6, Math.max(3, spacing * 0.08)),
   };
 }
