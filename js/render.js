@@ -10,6 +10,7 @@ export class Renderer {
     this.layout = null;
     this.colors = readColors();
     this.strings = [];
+    this.markers = null;
     this.frame = 0;
     this.lastTime = 0;
   }
@@ -35,6 +36,12 @@ export class Renderer {
     s.amplitude = Math.min(this.layout.spacing * 0.2, Math.hypot(s.amplitude, a));
     s.position = Math.min(0.9, Math.max(0.1, position));
     this.animate();
+  }
+
+  // Melody pluck indicators (9.3): { current, next }, each { string, position } or null.
+  setMarkers(markers) {
+    this.markers = markers;
+    if (!this.frame) this.draw();
   }
 
   animate() {
@@ -100,6 +107,41 @@ export class Renderer {
       ctx.lineTo(geom.x, layout.bottom);
       ctx.stroke();
     });
+
+    if (this.markers) this.drawMarkers();
+  }
+
+  // Current note: filled red circle with a dark outline. Next note: red ring.
+  drawMarkers() {
+    const { ctx, layout, colors } = this;
+    const { current, next } = this.markers;
+    const r = Math.max(18, Math.min(24, layout.spacing * 0.42));
+    const center = (m) => ({
+      x: layout.strings[m.string].x,
+      y: layout.bottom - m.position * (layout.bottom - layout.top),
+    });
+    if (next) {
+      const c = center(next);
+      // The same spot as the current note: show the ring just above it.
+      if (current && current.string === next.string && Math.abs(center(current).y - c.y) < 2 * r) {
+        c.y = center(current).y - 2.4 * r;
+      }
+      ctx.strokeStyle = colors.accent;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, r - 1.5, 0, 2 * Math.PI);
+      ctx.stroke();
+    }
+    if (current) {
+      const c = center(current);
+      ctx.fillStyle = colors.accent;
+      ctx.strokeStyle = colors.ink;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, r, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+    }
   }
 }
 

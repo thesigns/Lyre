@@ -19,6 +19,17 @@
     </svg>
   </button>
 
+  <div id="melody-bar" hidden>
+    <span id="melody-title"></span>
+    <button id="melody-restart" type="button">Restart</button>
+    <button id="melody-listen" type="button">Listen</button>
+    <button id="melody-exit" type="button" aria-label="Exit melody">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
   <p id="hint" hidden>Widen the window or rotate your device to play.</p>
   <pre id="debug"></pre>
 
@@ -26,16 +37,26 @@
     <h1>Lyre</h1>
     <div class="menu-buttons">
       <button id="play" type="button">Play</button>
+      <button id="open-melodies" type="button">Melodies</button>
       <button id="open-settings" type="button">Settings</button>
     </div>
   </section>
 
-  <section id="settings" hidden>
+  <section id="melodies" class="panel" hidden>
+    <header>
+      <h2>Melodies</h2>
+      <button id="close-melodies" type="button">Back</button>
+    </header>
+    <ul id="melody-list"></ul>
+  </section>
+
+  <section id="settings" class="panel" hidden>
     <header>
       <h2>Settings</h2>
       <button id="close-settings" type="button">Done</button>
     </header>
     <form id="settings-form">
+      <p id="tuning-locked" hidden>Tuning is set by the current melody.</p>
       <label class="row">
         <span>Tetrachord</span>
         <select name="genus"></select>

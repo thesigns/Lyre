@@ -75,7 +75,7 @@ button {
 
 #debug {
   position: fixed;
-  top: calc(env(safe-area-inset-top) + 8px);
+  bottom: calc(env(safe-area-inset-bottom) + 4px);
   left: calc(env(safe-area-inset-left) + 12px);
   margin: 0;
   font: 11px/1.4 ui-monospace, Menlo, Consolas, monospace;
@@ -119,7 +119,8 @@ button {
   border-radius: 999px;
 }
 
-#settings {
+/* Full-screen panels: settings, melody list. */
+.panel {
   position: fixed;
   inset: 0;
   overflow-y: auto;
@@ -129,37 +130,39 @@ button {
   background: var(--bg);
 }
 
-#settings[hidden] {
+.panel[hidden] {
   display: none;
 }
 
-#settings header,
-#settings form {
+.panel header,
+.panel form,
+.panel ul {
   max-width: 480px;
   margin: 0 auto;
 }
 
-#settings header {
+.panel header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
 }
 
-#settings h2 {
+.panel h2 {
   margin: 0;
   font-weight: normal;
   font-size: 28px;
 }
 
-#close-settings {
+.panel header button,
+#melody-bar button {
   padding: 8px 16px;
   font-size: 17px;
   border: 1.5px solid var(--frame);
   border-radius: 999px;
 }
 
-#settings .row {
+.panel .row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -170,7 +173,7 @@ button {
   font-size: 17px;
 }
 
-#settings select {
+.panel select {
   max-width: 60%;
   padding: 8px 10px;
   font: inherit;
@@ -180,13 +183,90 @@ button {
   border-radius: 8px;
 }
 
-#settings input[type="range"] {
+.panel select:disabled {
+  opacity: 0.45;
+}
+
+.panel input[type="range"] {
   width: 50%;
   accent-color: var(--frame);
 }
 
-#settings input[type="checkbox"] {
+.panel input[type="checkbox"] {
   width: 22px;
   height: 22px;
   accent-color: var(--frame);
+}
+
+#tuning-locked {
+  margin: 0 0 8px;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+#melody-list {
+  padding: 0;
+  list-style: none;
+}
+
+#melody-list button {
+  display: block;
+  width: 100%;
+  padding: 16px 0;
+  text-align: left;
+  border-bottom: 1px solid var(--frame);
+  border-bottom: 1px solid color-mix(in srgb, var(--frame) 35%, transparent);
+}
+
+#melody-list strong {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: normal;
+  font-size: 20px;
+}
+
+#melody-list span {
+  display: block;
+  font-size: 15px;
+  line-height: 1.45;
+  opacity: 0.8;
+}
+
+/* Melody controls above the strings. */
+#melody-bar {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 8px);
+  left: calc(env(safe-area-inset-left) + 12px);
+  right: calc(env(safe-area-inset-right) + 8px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+}
+
+#melody-bar[hidden] {
+  display: none;
+}
+
+#melody-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 17px;
+}
+
+#melody-bar button {
+  padding: 6px 12px;
+  font-size: 15px;
+}
+
+#melody-bar #melody-exit {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
 }

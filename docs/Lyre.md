@@ -144,7 +144,7 @@ Najważniejsze cechy:
 
 ### 9.2. Ekran wyboru melodii
 - Przycisk **Melodies** w menu startowym otwiera listę melodii: tytuł i krótki opis.
-- Wybór melodii otwiera instrument w trybie nauki, z ustawionym strojem utworu. Na ekranie dyskretnie: tytuł, przycisk „Listen”, przycisk powrotu.
+- Wybór melodii otwiera instrument w trybie nauki, z ustawionym strojem utworu. Na ekranie dyskretnie, w pasku u góry: tytuł, przycisk „Restart” (nauka od początku), przycisk „Listen” (w trakcie odsłuchu „Stop”) i przycisk wyjścia (✕). Przycisk menu jest w tym czasie ukryty. Po ostatniej nucie tytuł zmienia się na „Well played!”, kółka znikają, a „Restart” zaczyna od nowa.
 - Wyjście z melodii przywraca strój użytkownika.
 - **W trakcie melodii zmiana stroju w ustawieniach jest zablokowana** (pozycje stroju nieaktywne, z krótką informacją). Pozostałe ustawienia działają.
 
@@ -161,13 +161,17 @@ Najważniejsze cechy:
 - Melodie zapisane jako dane (JSON), nie w kodzie.
 - Każda melodia ma: tytuł, krótki opis historyczny (po angielsku), **przypisany strój** (ustawiany automatycznie na czas grania i przywracany po wyjściu), tempo oraz listę nut.
 - **Strój zapisany jawnie:** wysokość najniższej struny oraz 7 proporcji (jako ułamki, np. `"9/8"`) względem niej — a nie odwołanie do nazwanej skali z ustawień. Dzięki temu utwór może mieć dowolny strój dopasowany do swoich dźwięków, także niewystępujący w ustawieniach.
-- Każda nuta: numer struny, długość, opcjonalnie **pozycja szarpnięcia** wzdłuż struny (0–1, od mostka). Brak pozycji oznacza wartość domyślną.
+- Każda nuta: numer struny, długość, opcjonalnie **pozycja szarpnięcia** wzdłuż struny (0–1, od mostka). Brak pozycji oznacza wartość domyślną (0,3).
+- Plik `melodies/melodies.json`, pola: `id`, `title`, `description`, `tuning: { lowestNote (MIDI), ratios (7 ułamków jako tekst, rosnąco) }`, `tempo` (jednostki długości na minutę), `notes: [{ string (1–7), length, position? }]`. Jednostkę długości wybiera melodia (dla Seikilosa ósemka). Dane są walidowane przy wczytaniu i w testach.
 - Numery strun są logiczne (1 = najniższa), niezależne od odwrócenia kolejności dla leworęcznych.
 - Melodia zapisana numerami strun ma sens tylko w swoim stroju — stąd przypisanie stroju do utworu.
 
 ### 9.5. Repertuar startowy
 - **Pieśń Seikilosa** (ok. I w. n.e.), najstarszy zachowany kompletny utwór z zapisem melodii.
-- Do sprawdzenia w pierwszej kolejności, przed budową trybu melodii: **liczba różnych dźwięków** melodii, nie jej zakres. Strój utworu jest dowolny (9.4), więc jeśli melodia używa najwyżej 7 różnych dźwięków, mieści się na 7 strunach bez zmian. Jeśli używa więcej, zaproponować wierną adaptację (np. przeniesienie pojedynczej nuty o oktawę) i opisać ją w opisie utworu. Transkrypcję zweryfikować ze źródłem.
+- Zasada: liczy się **liczba różnych dźwięków** melodii, nie jej zakres. Strój utworu jest dowolny (9.4), więc melodia z najwyżej 7 różnymi dźwiękami mieści się na 7 strunach bez zmian. Jeśli używa więcej, stosujemy wierną adaptację i opisujemy ją w opisie utworu.
+- **Transkrypcja:** według współczesnej transkrypcji z Wikipedii (6/8, osiem taktów, zapis w D-dur z dwoma krzyżykami), opartej na standardowym odczytaniu (Pöhlmann i West, *Documents of Ancient Greek Music*, nr 23). Wysokości w zapisie: E4–E5.
+- **Adaptacja:** melodia używa 8 różnych dźwięków (E F♯ G A B C♯ D E). F♯4 pojawia się tylko raz, jako nuta przejściowa w ostatniej melizmie (A–F♯–E), więc jest pominięty, a jego wartość przechodzi na końcowe E. Kontur i kadencja zostają.
+- **Strój utworu** (od E3, oktawę niżej niż zapis, w rejestrze liry): E G A B C♯ D E, w proporcjach pitagorejskich 1, 32/27, 4/3, 3/2, 27/16, 16/9, 2. Tempo: 180 ósemek na minutę.
 - Docelowo kilka kolejnych krótkich melodii, także prostych, nie-historycznych, do rozgrzewki.
 
 ## 10. PWA
@@ -259,7 +263,7 @@ Rodzaj tetrachordu, skala i wysokość najniższej struny są nieaktywne w trakc
 
 - Pudło rezonansowe: splot z odpowiedzią impulsową czy filtry rezonansowe — decyzja po odsłuchu.
 - Konstrukcja heptachordu i harmonii (5.2) — weryfikacja ze źródłami muzykologicznymi.
-- Transkrypcja Pieśni Seikilosa i liczba jej różnych dźwięków (9.5).
+- Transkrypcja Pieśni Seikilosa (9.5): porównanie z wydaniem Pöhlmanna i Westa, zwłaszcza rytm i ostatnia fraza.
 - Szerokość pasma stuknięcia, głośność stuknięcia i próg histerezy przy brzdąknięciu — strojenie na prawdziwych urządzeniach.
 - Dolny próg głośności dla wolnego pociągnięcia (4.2).
 - Opóźnienie dźwięku na Androidzie i iOS — pomiar (`baseLatency`, `outputLatency`) w pierwszym prototypie, potem wartość docelowa do kryteriów akceptacji.

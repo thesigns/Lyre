@@ -1,0 +1,24 @@
+{
+  "melodies": [
+    {
+      "id": "seikilos",
+      "title": "Song of Seikilos",
+      "description": "Carved on a marble grave stele near Tralles in Asia Minor in the 1st or 2nd century AD, the Seikilos epitaph is the oldest surviving complete musical composition. Its brief verse asks the listener to shine while alive, for life is short and time claims its end. Adapted for seven strings: the short passing note F♯ in the last phrase is left out.",
+      "tuning": {
+        "lowestNote": 52,
+        "ratios": ["1", "32/27", "4/3", "3/2", "27/16", "16/9", "2"]
+      },
+      "tempo": 180,
+      "notes": [
+        { "string": 3, "length": 1 }, { "string": 7, "length": 2 }, { "string": 7, "length": 3 },
+        { "string": 5, "length": 1 }, { "string": 6, "length": 1 }, { "string": 7, "length": 1 }, { "string": 6, "length": 3 },
+        { "string": 5, "length": 2 }, { "string": 6, "length": 1 }, { "string": 7, "length": 1 }, { "string": 6, "length": 1 }, { "string": 5, "length": 1 },
+        { "string": 4, "length": 1 }, { "string": 3, "length": 2 }, { "string": 4, "length": 1 }, { "string": 2, "length": 2 },
+        { "string": 3, "length": 1 }, { "string": 5, "length": 1 }, { "string": 7, "length": 1 }, { "string": 6, "length": 1 }, { "string": 5, "length": 1 }, { "string": 6, "length": 1 },
+        { "string": 5, "length": 1 }, { "string": 3, "length": 2 }, { "string": 4, "length": 1 }, { "string": 2, "length": 2 },
+        { "string": 3, "length": 1 }, { "string": 5, "length": 1 }, { "string": 4, "length": 1 }, { "string": 6, "length": 1 }, { "string": 7, "length": 1 }, { "string": 5, "length": 1 },
+        { "string": 3, "length": 1 }, { "string": 3, "length": 2 }, { "string": 3, "length": 1 }, { "string": 1, "length": 2 }
+      ]
+    }
+  ]
+}

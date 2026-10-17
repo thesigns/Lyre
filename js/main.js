@@ -4,6 +4,7 @@ import { AudioEngine, stringT60 } from './audio/engine.js';
 import { GestureTracker } from './gesture.js';
 import { computeLayout } from './layout.js';
 import { Renderer } from './render.js';
+import { Lesson, MelodyPlayer, normalizeMelody } from './melody.js';
 import { loadSettings, saveSettings } from './settings.js';
 import { GENERA, LOWEST_NOTES, SCALES, frequencies, midiToHz, noteName, scaleRatios } from './tuning.js';
 
@@ -12,6 +13,12 @@ const canvas = document.getElementById('strings');
 const menu = document.getElementById('menu');
 const settingsPanel = document.getElementById('settings');
 const settingsForm = document.getElementById('settings-form');
+const tuningLocked = document.getElementById('tuning-locked');
+const melodiesPanel = document.getElementById('melodies');
+const melodyList = document.getElementById('melody-list');
+const melodyBar = document.getElementById('melody-bar');
+const melodyTitle = document.getElementById('melody-title');
+const listenButton = document.getElementById('melody-listen');
 const menuButton = document.getElementById('menu-button');
 const hint = document.getElementById('hint');
 const debug = document.getElementById('debug');
@@ -23,6 +30,21 @@ const settings = loadSettings();
 
 let canvasRect = canvas.getBoundingClientRect();
 let lastInputLag = null;
+let melodies = [];
+let activeMelody = null;
+let lesson = null;
+let wakeLock = null;
+
+const player = new MelodyPlayer(engine, {
+  onNote(i) {
+    const notes = activeMelody.notes;
+    renderer.pluck(notes[i].string, player.amp, notes[i].position);
+    renderer.setMarkers({ current: notes[i], next: notes[i + 1] || null });
+  },
+  onEnd() {
+    restartLesson();
+  },
+});
 
 // Volume from the finger speed at the crossing (px/ms), with a floor so that
 // a slow pull is still clearly audible (4.2).
@@ -34,9 +56,11 @@ function speedToAmp(speed) {
 const TAP_AMP = 0.6;
 
 // New tuning applies from the next pluck of each string (5.3).
+// A melody brings its own tuning for as long as it is open (9.4).
 function applyTuning() {
-  const ratios = scaleRatios(settings.genus, settings.scale);
-  const freqs = frequencies(midiToHz(settings.lowestNote), ratios);
+  const freqs = activeMelody
+    ? frequencies(midiToHz(activeMelody.lowestNote), activeMelody.ratios)
+    : frequencies(midiToHz(settings.lowestNote), scaleRatios(settings.genus, settings.scale));
   engine.setTuning(freqs);
   renderer.setDecays(freqs.map(stringT60));
 }
@@ -61,8 +85,143 @@ function play(plucks) {
     engine.pluck(p.string, now + (p.t - base) / 1000, amp, p.position);
     renderer.pluck(p.string, amp, p.position);
   }
+  if (lesson && !player.playing) advanceLesson(plucks);
   showDebug();
 }
+
+// Melodies (9)
+
+function showLessonMarkers() {
+  renderer.setMarkers({ current: lesson.current(), next: lesson.next() });
+}
+
+// Every pluck of the expected string counts, so one strum can advance several notes.
+function advanceLesson(plucks) {
+  let moved = false;
+  for (const p of plucks) if (lesson.pluck(p.string)) moved = true;
+  if (!moved) return;
+  if (lesson.finished) {
+    renderer.setMarkers(null);
+    melodyTitle.textContent = 'Well played!';
+  } else {
+    showLessonMarkers();
+  }
+}
+
+function restartLesson() {
+  player.stop();
+  listenButton.textContent = 'Listen';
+  melodyTitle.textContent = activeMelody.title;
+  lesson.restart();
+  showLessonMarkers();
+}
+
+function setTuningLocked(locked) {
+  const f = settingsForm.elements;
+  f.genus.disabled = f.scale.disabled = f.lowestNote.disabled = locked;
+  tuningLocked.hidden = !locked;
+}
+
+function startMelody(melody) {
+  activeMelody = melody;
+  lesson = new Lesson(melody);
+  melodyTitle.textContent = melody.title;
+  listenButton.textContent = 'Listen';
+  melodyBar.hidden = false;
+  menuButton.hidden = true;
+  menu.hidden = true;
+  melodiesPanel.hidden = true;
+  setTuningLocked(true);
+  applyTuning();
+  showLessonMarkers();
+  keepAwake(true);
+}
+
+function exitMelody() {
+  player.stop();
+  activeMelody = null;
+  lesson = null;
+  melodyBar.hidden = true;
+  menuButton.hidden = false;
+  setTuningLocked(false);
+  applyTuning();
+  renderer.setMarkers(null);
+  keepAwake(false);
+}
+
+// The screen stays on during a melody (10.1).
+async function keepAwake(on) {
+  try {
+    if (on && !wakeLock && navigator.wakeLock) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => {
+        wakeLock = null;
+      });
+    } else if (!on && wakeLock) {
+      await wakeLock.release();
+      wakeLock = null;
+    }
+  } catch (e) {
+    // Not supported or refused (e.g. battery saver): the screen may dim.
+  }
+}
+
+function renderMelodyList() {
+  melodyList.replaceChildren();
+  if (!melodies.length) {
+    const li = document.createElement('li');
+    li.textContent = 'Melodies could not be loaded.';
+    melodyList.append(li);
+    return;
+  }
+  for (const m of melodies) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    const title = document.createElement('strong');
+    title.textContent = m.title;
+    const description = document.createElement('span');
+    description.textContent = m.description;
+    button.append(title, description);
+    button.addEventListener('click', () => {
+      startAudio();
+      startMelody(m);
+    });
+    const li = document.createElement('li');
+    li.append(button);
+    melodyList.append(li);
+  }
+}
+
+function loadMelodies() {
+  fetch('melodies/melodies.json')
+    .then((r) => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    })
+    .then((data) => {
+      melodies = data.melodies.map(normalizeMelody);
+    })
+    .catch(() => {
+      melodies = [];
+    })
+    .finally(renderMelodyList);
+}
+
+document.getElementById('melody-restart').addEventListener('click', restartLesson);
+
+// Listening plays the whole melody; afterwards learning starts over (9.1).
+listenButton.addEventListener('click', () => {
+  if (player.playing) {
+    restartLesson();
+    return;
+  }
+  lesson.restart();
+  melodyTitle.textContent = activeMelody.title;
+  listenButton.textContent = 'Stop';
+  player.start(activeMelody);
+});
+
+document.getElementById('melody-exit').addEventListener('click', exitMelody);
 
 function local(e) {
   return { x: e.clientX - canvasRect.left, y: e.clientY - canvasRect.top, t: e.timeStamp };
@@ -93,6 +252,15 @@ function startAudio() {
 document.getElementById('play').addEventListener('click', () => {
   startAudio();
   menu.hidden = true;
+});
+
+document.getElementById('open-melodies').addEventListener('click', () => {
+  startAudio();
+  melodiesPanel.hidden = false;
+});
+
+document.getElementById('close-melodies').addEventListener('click', () => {
+  melodiesPanel.hidden = true;
 });
 
 document.getElementById('open-settings').addEventListener('click', () => {
@@ -159,7 +327,9 @@ function initSettingsForm() {
 
 // After returning from the background, iOS may need a new click to restart audio (10.1).
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState !== 'visible' || engine.running) return;
+  if (document.visibilityState !== 'visible') return;
+  if (activeMelody) keepAwake(true); // the system drops the lock in the background
+  if (engine.running) return;
   engine.resume().catch(() => {});
   setTimeout(() => {
     if (!engine.running) menu.hidden = false;
@@ -186,6 +356,7 @@ engine.init().then(showDebug, (err) => {
 engine.setVolume(settings.volume);
 debug.hidden = !settings.showLatency;
 initSettingsForm();
+loadMelodies();
 applyTuning();
 relayout();
 showDebug();
