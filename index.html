@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <meta name="theme-color" content="#E9DFC9">
   <title>Lyre</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="css/style.css">
   <script type="module" src="js/main.js"></script>
 </head>
@@ -81,6 +84,17 @@
         <span>Show latency info</span>
         <input type="checkbox" name="showLatency">
       </label>
+      <div class="row" id="install-row" hidden>
+        <span>Install app</span>
+        <button id="install-button" type="button">Install</button>
+      </div>
+      <p class="row" id="install-ios" hidden>
+        <span>To install, tap Share
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-label="Share" role="img">
+            <path d="M12 3v12M8 7l4-4 4 4M6 11v9h12v-9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          then Add to Home Screen.</span>
+      </p>
     </form>
   </section>
 </body>

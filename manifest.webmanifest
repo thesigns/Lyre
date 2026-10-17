@@ -1,0 +1,17 @@
+{
+  "name": "Lyre",
+  "short_name": "Lyre",
+  "description": "A virtual ancient Greek lyre with seven synthesized strings.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#E9DFC9",
+  "background_color": "#E9DFC9",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

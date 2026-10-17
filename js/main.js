@@ -5,6 +5,7 @@ import { GestureTracker } from './gesture.js';
 import { computeLayout } from './layout.js';
 import { Renderer } from './render.js';
 import { Lesson, MelodyPlayer, normalizeMelody } from './melody.js';
+import { initInstall, registerServiceWorker } from './pwa.js';
 import { loadSettings, saveSettings } from './settings.js';
 import { GENERA, LOWEST_NOTES, SCALES, frequencies, midiToHz, noteName, scaleRatios } from './tuning.js';
 
@@ -356,6 +357,12 @@ engine.init().then(showDebug, (err) => {
 engine.setVolume(settings.volume);
 debug.hidden = !settings.showLatency;
 initSettingsForm();
+initInstall({
+  row: document.getElementById('install-row'),
+  button: document.getElementById('install-button'),
+  iosHint: document.getElementById('install-ios'),
+});
+registerServiceWorker({ canActivate: () => !menu.hidden });
 loadMelodies();
 applyTuning();
 relayout();

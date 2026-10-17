@@ -178,13 +178,16 @@ Najważniejsze cechy:
 
 ### 10.1. Podstawy
 - Manifest z ikoną i nazwą „Lyre”, `lang: "en"`. Pole orientacji: `any`, żeby zainstalowana aplikacja obracała się swobodnie między portretem a landscape (6). Systemowa blokada obrotu użytkownika ma pierwszeństwo; iOS ignoruje to pole i i tak obraca zgodnie z urządzeniem. Kolory `theme_color` i `background_color` z palety (beż).
-- Service worker cache'ujący wszystkie zasoby; pełne działanie offline.
+- Service worker (`sw.js`) trzyma całą aplikację w jednym cache oznaczonym wersją (`VERSION`); pełne działanie offline. Wszystkie pliki pochodzą zawsze z tego samego wydania (pobierane z pominięciem cache HTTP), więc nie powstaje mieszanka starych i nowych plików.
+- **Każde wydanie wymaga podbicia `VERSION` w `sw.js`.** Test pilnuje, żeby lista plików w `sw.js` obejmowała wszystkie pliki aplikacji.
+- Na `localhost` service worker nie jest rejestrowany (przy pracy zawsze widać aktualne pliki); parametr `?sw` w adresie włącza go do testów offline.
 - **AudioContext uruchamiany kliknięciem przycisku w menu startowym** (11.1). Na urządzeniach dotykowych `pointerdown` nie jest aktywacją użytkownika (jest nią dopiero `pointerup`/`click`), więc dotknięcie struny nie mogłoby niezawodnie uruchomić dźwięku. Kliknięcie w menu robi to, zanim użytkownik dotknie strun.
 - AudioContext i AudioWorklet (`addModule`) tworzone wcześniej, przy starcie aplikacji, w stanie wstrzymanym. Kliknięcie w menu tylko wywołuje `resume()`, więc dźwięk jest gotowy od razu.
 - Po powrocie aplikacji z tła: próba wznowienia AudioContext. Jeśli się nie uda (np. iOS wymaga ponownej aktywacji), pokazać menu startowe; kliknięcie w nim wznawia dźwięk. Stan instrumentu i melodii się nie resetuje.
 - **iOS:** przełącznik wyciszenia w iPhonie potrafi wyciszyć dźwięk z przeglądarki. Ustawić `navigator.audioSession.type = "playback"` (Safari 17+), co w nowszych wersjach to omija. Na starszych, jeśli brak dźwięku jest prawdopodobny, pokazać jednorazową podpowiedź.
 - **Wake Lock:** w trakcie melodii (nauka i odsłuch) ekran nie gaśnie (Screen Wake Lock API, z ponownym założeniem blokady po powrocie z tła). Poza melodią zachowanie systemowe.
-- **Aktualizacje:** nowa wersja aplikacji pobierana w tle przez service worker i aktywowana przy następnym uruchomieniu, bez komunikatów i bez przeładowania w trakcie gry.
+- **Aktualizacje:** nowa wersja aplikacji pobierana w tle przez service worker i aktywowana przy następnym uruchomieniu, bez komunikatów i bez przeładowania w trakcie gry. Jeśli przy starcie czeka pobrana nowa wersja, a menu startowe jest jeszcze otwarte, aplikacja przełącza się na nią jednym szybkim przeładowaniem; w trakcie gry nigdy.
+- Ikony generuje skrypt `tools/make-icons.mjs` (bez zależności): beżowe tło, siedem strun, czerwone kółko; wersja 512 px służy też jako ikona maskowalna.
 - Ustawienia zapisywane lokalnie (localStorage, z obsługą błędów).
 
 ### 10.2. Hosting

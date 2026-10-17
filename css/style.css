@@ -130,7 +130,8 @@ button {
   background: var(--bg);
 }
 
-.panel[hidden] {
+.panel[hidden],
+.panel [hidden] {
   display: none;
 }
 
@@ -196,6 +197,20 @@ button {
   width: 22px;
   height: 22px;
   accent-color: var(--frame);
+}
+
+#install-button {
+  padding: 6px 16px;
+  border: 1.5px solid var(--frame);
+  border-radius: 999px;
+}
+
+#install-ios {
+  margin: 0;
+}
+
+#install-ios svg {
+  vertical-align: -3px;
 }
 
 #tuning-locked {
