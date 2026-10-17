@@ -24,7 +24,43 @@
 
   <section id="menu">
     <h1>Lyre</h1>
-    <button id="play" type="button">Play</button>
+    <div class="menu-buttons">
+      <button id="play" type="button">Play</button>
+      <button id="open-settings" type="button">Settings</button>
+    </div>
+  </section>
+
+  <section id="settings" hidden>
+    <header>
+      <h2>Settings</h2>
+      <button id="close-settings" type="button">Done</button>
+    </header>
+    <form id="settings-form">
+      <label class="row">
+        <span>Tetrachord</span>
+        <select name="genus"></select>
+      </label>
+      <label class="row">
+        <span>Scale</span>
+        <select name="scale"></select>
+      </label>
+      <label class="row">
+        <span>Lowest string</span>
+        <select name="lowestNote"></select>
+      </label>
+      <label class="row">
+        <span>Left-handed</span>
+        <input type="checkbox" name="leftHanded">
+      </label>
+      <label class="row">
+        <span>Volume</span>
+        <input type="range" name="volume" min="0" max="1" step="0.01">
+      </label>
+      <label class="row">
+        <span>Show latency info</span>
+        <input type="checkbox" name="showLatency">
+      </label>
+    </form>
   </section>
 </body>
 </html>

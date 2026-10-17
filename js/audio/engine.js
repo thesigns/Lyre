@@ -3,6 +3,11 @@
 // Fade-out (60 dB, seconds) of the old pitch when a string is plucked after retuning.
 const FADE_T60 = 0.08;
 
+// Squared, so the slider feels even to the ear.
+function volumeGain(volume) {
+  return volume * volume;
+}
+
 // Decay time of a string; the renderer uses the same value for the visual decay.
 // Lower strings ring longer.
 export function stringT60(freq) {
@@ -14,6 +19,7 @@ export class AudioEngine {
     this.ctx = null;
     this.node = null;
     this.pendingTuning = null;
+    this.volume = 0.9;
     this.ready = null;
   }
 
@@ -72,7 +78,7 @@ export class AudioEngine {
     shelf.connect(limiter);
 
     this.master = ctx.createGain();
-    this.master.gain.value = 0.8;
+    this.master.gain.value = volumeGain(this.volume);
     limiter.connect(this.master);
     this.master.connect(ctx.destination);
 
@@ -102,6 +108,12 @@ export class AudioEngine {
       strings: freqs.map((freq) => ({ freq, t60: stringT60(freq) })),
       fadeT60: FADE_T60,
     });
+  }
+
+  // volume: 0..1 from the settings slider.
+  setVolume(volume) {
+    this.volume = volume;
+    if (this.master) this.master.gain.setTargetAtTime(volumeGain(volume), this.ctx.currentTime, 0.02);
   }
 
   pluck(string, when, amp, position) {

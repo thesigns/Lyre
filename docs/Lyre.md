@@ -65,7 +65,7 @@ Najważniejsze cechy:
 - Konstrukcja skal wymaga jeszcze weryfikacji ze źródłami muzykologicznymi.
 
 ### 5.3. Wysokość i zmiana stroju
-- Wysokość najniższej struny konfigurowalna, z rozsądną wartością domyślną (ok. E3).
+- Wysokość najniższej struny wybierana nazwą dźwięku, od A2 do C4, domyślnie E3. Tylko ta jedna wysokość korzysta ze współczesnego odniesienia (A4 = 440 Hz, strój równomierny); pozostałe struny wynikają z proporcji stroju.
 - **Zmiana stroju działa od kolejnego szarpnięcia.** Struny, które właśnie brzmią, wybrzmiewają w starym stroju (zmiana długości linii opóźniającej w trakcie drgania daje artefakty).
 
 ## 6. Layout
@@ -200,7 +200,8 @@ Najważniejsze cechy:
 ## 11. Menu startowe i ustawienia
 
 ### 11.1. Menu startowe
-- Pierwszy ekran po uruchomieniu: nazwa „Lyre” i kilka przycisków: **Play**, **Melodies**, **Settings**.
+- Pierwszy ekran po uruchomieniu: nazwa „Lyre” i kilka przycisków: **Play**, **Melodies**, **Settings** (Melodies dochodzi razem z trybem melodii).
+- Settings otwiera się na tle menu; przycisk **Done** wraca do menu.
 - Kliknięcie dowolnego przycisku uruchamia AudioContext (10.1).
 - W tej samej beżowej palecie, minimalistyczne, bez animacji wstępnych.
 - Dyskretny przycisk na ekranie instrumentu wraca do menu.
@@ -213,7 +214,10 @@ Krótka lista, jeden ekran:
 - wysokość najniższej struny,
 - kolejność strun (odwrócenie dla leworęcznych),
 - głośność ogólna,
-- zainstaluj aplikację (tylko gdy dostępne; patrz 10.3).
+- pokazywanie informacji o opóźnieniu (stan audio, opóźnienia; domyślnie wyłączone, przydatne przy testach na urządzeniach),
+- zainstaluj aplikację (tylko gdy dostępne; patrz 10.3; dochodzi razem z PWA).
+
+Zmiany działają od razu i są zapisywane w localStorage; nieprawidłowe lub uszkodzone zapisane wartości są zastępowane domyślnymi.
 
 Rodzaj tetrachordu, skala i wysokość najniższej struny są nieaktywne w trakcie melodii (9.2), bo melodia ma własny strój.
 

@@ -43,8 +43,19 @@ export function scaleRatios(genusId, scaleId) {
   return ratios;
 }
 
-export const E3 = 164.814;
-
 export function frequencies(lowestHz, ratios) {
   return ratios.map((r) => lowestHz * r);
+}
+
+// The lowest string is chosen by note name; only this one pitch uses the modern
+// reference (A4 = 440 Hz, equal temperament), the other strings follow the ratios.
+const NOTE_NAMES = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+export const LOWEST_NOTES = { min: 45, max: 60, default: 52 }; // MIDI: A2 to C4, default E3
+
+export function midiToHz(midi) {
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+export function noteName(midi) {
+  return `${NOTE_NAMES[midi % 12]}${Math.floor(midi / 12) - 1}`;
 }

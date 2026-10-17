@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { E3, frequencies, scaleRatios } from '../js/tuning.js';
+import { frequencies, midiToHz, noteName, scaleRatios } from '../js/tuning.js';
+
+const E3 = midiToHz(52);
 
 // Minimal AudioWorkletGlobalScope so the processor can run offline.
 let Processor = null;
@@ -94,6 +96,13 @@ test('retuning applies from the next pluck of a ringing string', async () => {
   assert.ok(Math.abs(cents(pitch(render(proc, rate, 0.5), rate, 220), 220)) < 3, 'still the old pitch');
   send(proc, { type: 'pluck', string: 0, when: 0, amp: 1, position: 0.2 });
   assert.ok(Math.abs(cents(pitch(render(proc, rate, 0.5), rate, 330), 330)) < 3, 'new pitch after pluck');
+});
+
+test('note names and pitches of the lowest string', () => {
+  assert.equal(noteName(52), 'E3');
+  assert.equal(noteName(45), 'A2');
+  assert.equal(noteName(61), 'C♯4');
+  assert.ok(Math.abs(midiToHz(52) - 164.814) < 0.001);
 });
 
 test('scales have seven notes and the expected spans', () => {

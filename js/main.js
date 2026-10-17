@@ -1,15 +1,17 @@
-// App wiring: start menu, pointer input, audio and drawing.
+// App wiring: start menu, settings, pointer input, audio and drawing.
 
 import { AudioEngine, stringT60 } from './audio/engine.js';
 import { GestureTracker } from './gesture.js';
 import { computeLayout } from './layout.js';
 import { Renderer } from './render.js';
-import { E3, frequencies, scaleRatios } from './tuning.js';
+import { loadSettings, saveSettings } from './settings.js';
+import { GENERA, LOWEST_NOTES, SCALES, frequencies, midiToHz, noteName, scaleRatios } from './tuning.js';
 
 const stage = document.getElementById('stage');
 const canvas = document.getElementById('strings');
 const menu = document.getElementById('menu');
-const playButton = document.getElementById('play');
+const settingsPanel = document.getElementById('settings');
+const settingsForm = document.getElementById('settings-form');
 const menuButton = document.getElementById('menu-button');
 const hint = document.getElementById('hint');
 const debug = document.getElementById('debug');
@@ -17,6 +19,7 @@ const debug = document.getElementById('debug');
 const engine = new AudioEngine();
 const tracker = new GestureTracker();
 const renderer = new Renderer(canvas);
+const settings = loadSettings();
 
 let canvasRect = canvas.getBoundingClientRect();
 let lastInputLag = null;
@@ -30,15 +33,17 @@ function speedToAmp(speed) {
 // A tap has no movement to measure, so it plays at a medium volume.
 const TAP_AMP = 0.6;
 
+// New tuning applies from the next pluck of each string (5.3).
 function applyTuning() {
-  const freqs = frequencies(E3, scaleRatios('diatonic-pythagorean', 'heptachord'));
+  const ratios = scaleRatios(settings.genus, settings.scale);
+  const freqs = frequencies(midiToHz(settings.lowestNote), ratios);
   engine.setTuning(freqs);
   renderer.setDecays(freqs.map(stringT60));
 }
 
 function relayout() {
   canvasRect = canvas.getBoundingClientRect();
-  const layout = computeLayout(canvasRect.width, canvasRect.height);
+  const layout = computeLayout(canvasRect.width, canvasRect.height, { leftHanded: settings.leftHanded });
   tracker.setLayout(layout);
   renderer.setLayout(layout);
   hint.hidden = !layout.tooNarrow;
@@ -80,14 +85,77 @@ for (const type of ['pointerup', 'pointercancel']) {
   stage.addEventListener(type, (e) => tracker.up(e.pointerId));
 }
 
-playButton.addEventListener('click', () => {
+// Any menu button starts the audio, since a click is a user activation (10.1).
+function startAudio() {
   engine.resume().then(showDebug, showDebug);
+}
+
+document.getElementById('play').addEventListener('click', () => {
+  startAudio();
   menu.hidden = true;
+});
+
+document.getElementById('open-settings').addEventListener('click', () => {
+  startAudio();
+  settingsPanel.hidden = false;
+});
+
+document.getElementById('close-settings').addEventListener('click', () => {
+  settingsPanel.hidden = true;
 });
 
 menuButton.addEventListener('click', () => {
   menu.hidden = false;
 });
+
+function fillOptions(select, entries) {
+  for (const [value, label] of entries) select.add(new Option(label, value));
+}
+
+function initSettingsForm() {
+  const f = settingsForm.elements;
+  fillOptions(f.genus, Object.entries(GENERA).map(([id, g]) => [id, g.name]));
+  fillOptions(f.scale, Object.entries(SCALES).map(([id, s]) => [id, s.name]));
+  const notes = [];
+  for (let m = LOWEST_NOTES.min; m <= LOWEST_NOTES.max; m++) notes.push([m, noteName(m)]);
+  fillOptions(f.lowestNote, notes);
+
+  f.genus.value = settings.genus;
+  f.scale.value = settings.scale;
+  f.lowestNote.value = settings.lowestNote;
+  f.leftHanded.checked = settings.leftHanded;
+  f.volume.value = settings.volume;
+  f.showLatency.checked = settings.showLatency;
+
+  settingsForm.addEventListener('input', (e) => {
+    const el = e.target;
+    switch (el.name) {
+      case 'genus':
+      case 'scale':
+        settings[el.name] = el.value;
+        applyTuning();
+        break;
+      case 'lowestNote':
+        settings.lowestNote = Number(el.value);
+        applyTuning();
+        break;
+      case 'leftHanded':
+        settings.leftHanded = el.checked;
+        relayout();
+        break;
+      case 'volume':
+        settings.volume = Number(el.value);
+        engine.setVolume(settings.volume);
+        break;
+      case 'showLatency':
+        settings.showLatency = el.checked;
+        debug.hidden = !el.checked;
+        break;
+    }
+    saveSettings(settings);
+  });
+  settingsForm.addEventListener('submit', (e) => e.preventDefault());
+}
 
 // After returning from the background, iOS may need a new click to restart audio (10.1).
 document.addEventListener('visibilitychange', () => {
@@ -113,7 +181,11 @@ function showDebug() {
 new ResizeObserver(relayout).observe(canvas);
 engine.init().then(showDebug, (err) => {
   debug.textContent = `audio init failed: ${err.message}`;
+  debug.hidden = false;
 });
+engine.setVolume(settings.volume);
+debug.hidden = !settings.showLatency;
+initSettingsForm();
 applyTuning();
 relayout();
 showDebug();

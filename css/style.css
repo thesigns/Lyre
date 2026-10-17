@@ -105,10 +105,88 @@ button {
   letter-spacing: 0.08em;
 }
 
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 #menu button {
-  min-width: 160px;
+  min-width: 180px;
   padding: 12px 24px;
   font-size: 20px;
   border: 1.5px solid var(--frame);
   border-radius: 999px;
+}
+
+#settings {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: calc(env(safe-area-inset-top) + 16px) calc(env(safe-area-inset-right) + 16px)
+    calc(env(safe-area-inset-bottom) + 24px) calc(env(safe-area-inset-left) + 16px);
+  background: var(--bg);
+}
+
+#settings[hidden] {
+  display: none;
+}
+
+#settings header,
+#settings form {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+#settings header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+#settings h2 {
+  margin: 0;
+  font-weight: normal;
+  font-size: 28px;
+}
+
+#close-settings {
+  padding: 8px 16px;
+  font-size: 17px;
+  border: 1.5px solid var(--frame);
+  border-radius: 999px;
+}
+
+#settings .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 56px;
+  border-bottom: 1px solid var(--frame);
+  border-bottom: 1px solid color-mix(in srgb, var(--frame) 35%, transparent);
+  font-size: 17px;
+}
+
+#settings select {
+  max-width: 60%;
+  padding: 8px 10px;
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 1.5px solid var(--frame);
+  border-radius: 8px;
+}
+
+#settings input[type="range"] {
+  width: 50%;
+  accent-color: var(--frame);
+}
+
+#settings input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--frame);
 }
